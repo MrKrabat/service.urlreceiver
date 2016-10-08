@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<settings>
+    <setting id="port" type="slider" label="30001" default="1337" range="1024,65535" option="int"/>
+</settings>
