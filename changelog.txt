@@ -1,1 +1,2 @@
 1.0.0 Initial Release RC1
+1.0.2 Fix for HTTPS clients
