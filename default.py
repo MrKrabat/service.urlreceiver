@@ -35,6 +35,9 @@ def sendtoclient(socket, browser, message):
 	if not browser:
 		socket.send(message)
 	else:
+		if len(message) == 1:
+			message = message + '<script>window.close();</script>';
+		
 		socket.sendall('HTTP/1.1 200 OK\nContent-Type: text/html\nAccess-Control-Allow-Origin: *\n\n' + message)
 
 
