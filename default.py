@@ -96,6 +96,11 @@ if __name__ == '__main__':
 					link = ''
 					if data.lower().endswith(__mediaext__):
 						link = data
+					elif "crunchyroll.com" in data:
+						# special crunchyroll handler, requires crunchyroll-takeout plugin to be installed
+						xbmc.executeJSONRPC('{"jsonrpc":"2.0", "id":1, "method":"Player.Open", "params":{"item":{"file":"plugin://plugin.video.crunchyroll-takeout/?url=' + data + '"}}}')
+						sendtoclient(connection, browser, '1')
+						continue
 					elif data:
 						try:
 							link = urlresolver.resolve(data)
