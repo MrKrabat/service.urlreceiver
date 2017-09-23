@@ -107,7 +107,7 @@ if __name__ == '__main__':
 						sendtoclient(connection, browser, '1')
 						continue
 					elif "wakanim.tv" in data:
-						# special akibapass handler, requires akibapass plugin to be installed
+						# special wakanim_de handler, requires wakanim_de plugin to be installed
 						xbmc.executeJSONRPC('{"jsonrpc":"2.0", "id":1, "method":"Player.Open", "params":{"item":{"file":"plugin://plugin.video.wakanim_de/?url=' + data + '"}}}')
 						sendtoclient(connection, browser, '1')
 						continue
