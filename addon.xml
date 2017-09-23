@@ -15,9 +15,9 @@
 		<description lang="de">Senden Sie URLs für die Wiedergabe direkt auf Ihr Kodi Gerät.</description>
 		
 		<license>GNU Affero General Public License, v3</license>
-		<forum>Not yet</forum>
+		<forum></forum>
 		<website>https://dev.mrkrabat.de/urlreceiver/</website>
-		<email>support@mrkrabat.de</email>
-		<source>https://dev.mrkrabat.de/urlreceiver/</source>
+		<email></email>
+		<source>https://github.com/MrKrabat/service.urlreceiver</source>
 	</extension>
 </addon>
