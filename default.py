@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # URLReceiver - Send URLs for playback directly on your Kodi device.
-# Copyright (C) 2016  MrKrabat
+# Copyright (C) 2016 - 2017 MrKrabat
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -16,10 +16,16 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-# Imports
-import sys, socket
-import xbmc, xbmcaddon, xbmcgui
+import sys
+import re
+import socket
+
+import xbmc
+import xbmcaddon
+import xbmcgui
+
 import urlresolver
+
 
 # Constants
 __addonid__	  = 'service.urlreceiver'
@@ -28,6 +34,7 @@ __plugin__    = __settings__.getAddonInfo('name')
 __version__   = __settings__.getAddonInfo('version')
 __path__	  = __settings__.getAddonInfo('path')
 __port__ 	  = __settings__.getSetting('port')
+__regex__	  = r"\.([a-zA-Z0-9]*)(?=\||\?|\#|\n|$)"
 
 
 # function to send messages
@@ -37,7 +44,7 @@ def sendtoclient(socket, browser, message):
 	else:
 		if len(message) == 1:
 			message = message + '<script>window.close();</script>';
-		
+
 		socket.sendall('HTTP/1.1 200 OK\nContent-Type: text/html\nAccess-Control-Allow-Origin: *\n\n' + message)
 
 
@@ -49,7 +56,7 @@ if __name__ == '__main__':
 	# read URLSender.html
 	with open(__path__ + '/urlsender.html', 'r') as myfile:
 		__urlsender__ = myfile.read()
-	
+
 	try:
 		# create listening socket
 		sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -63,13 +70,13 @@ if __name__ == '__main__':
 		xbmc.log("[SERVICE] %s: Initializing version %s failed on port %s" % (__plugin__, __version__, __port__), xbmc.LOGFATAL)
 		xbmcgui.Dialog().notification(__plugin__, __settings__.getLocalizedString(30101) % __port__, xbmcgui.NOTIFICATION_ERROR)
 		sys.exit()
-	
+
 	# main loop
 	while not monitor.abortRequested():
 		# shutdown requested?
 		if monitor.waitForAbort(0.20):
 			break
-		
+
 		try:
 			# wait for incoming connection
 			connection, client_address = sock.accept()
@@ -88,13 +95,14 @@ if __name__ == '__main__':
 							# send webinterface
 							sendtoclient(connection, browser, __urlsender__)
 							continue
-					
+
 					# Debug: log URL
 					xbmc.log("[SERVICE] %s: URL received: %s" % (__plugin__, data), xbmc.LOGDEBUG)
-					
+
 					# test if link is video or need to be resolved
 					link = ''
-					if data.lower().endswith(__mediaext__):
+					ext = re.search(__regex__, data).group(0)
+					if ext in __mediaext__:
 						link = data
 					elif "crunchyroll.com" in data:
 						# special crunchyroll handler, requires crunchyroll-takeout plugin to be installed
@@ -107,7 +115,7 @@ if __name__ == '__main__':
 						sendtoclient(connection, browser, '1')
 						continue
 					elif "wakanim.tv" in data:
-						# special wakanim_de handler, requires wakanim_de plugin to be installed
+						# special wakanim handler, requires wakanim plugin to be installed
 						xbmc.executeJSONRPC('{"jsonrpc":"2.0", "id":1, "method":"Player.Open", "params":{"item":{"file":"plugin://plugin.video.wakanim_de/?url=' + data + '"}}}')
 						sendtoclient(connection, browser, '1')
 						continue
@@ -116,7 +124,7 @@ if __name__ == '__main__':
 							link = urlresolver.resolve(data)
 						except:
 							pass
-					
+
 					if link:
 						if xbmc.Player().isPlaying():
 							# add to playlist
@@ -130,22 +138,21 @@ if __name__ == '__main__':
 							playlist.clear()
 							playlist.add(link)
 							xbmc.Player().play(playlist)
-					
 					else:
 						# unable to play
 						sendtoclient(connection, browser, '0')
 						xbmc.log("[SERVICE] %s: The received URL could not be played" % __plugin__, xbmc.LOGDEBUG)
 						xbmcgui.Dialog().notification(__plugin__, __settings__.getLocalizedString(30102), xbmcgui.NOTIFICATION_WARNING)
-			
+
 			finally:
 				# close connection
 				connection.close()
-		
+
 		except socket.error:
 			# continue if no connection
 			continue
-	
-	
+
+
 	# shut down service
 	xbmc.log("[SERVICE] %s: The service will be shut down" % __plugin__, xbmc.LOGDEBUG)
 	sock.close()
