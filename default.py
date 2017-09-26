@@ -101,8 +101,8 @@ if __name__ == '__main__':
 
 					# test if link is video or need to be resolved
 					link = ''
-					ext = re.search(__regex__, data).group(0)
-					if ext in __mediaext__:
+					ext = re.search(__regex__, data)
+					if ext and ext.group(0) in __mediaext__:
 						link = data
 					elif "crunchyroll.com" in data:
 						# special crunchyroll handler, requires crunchyroll-takeout plugin to be installed
