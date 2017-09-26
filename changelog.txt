@@ -1,3 +1,12 @@
-1.0.0 Initial Release RC1
-1.0.2 Fix for HTTPS clients
-1.1.0 Added Crunchyroll-takeout plugin support
+2017.09.26 v1.2.0
++ Added Wakanim, Akibapass support
++ Added cookie and user-agent support
+
+2017.09.05 v1.1.0
++ Added Crunchyroll-takeout plugin support
+
+2017.03.19 v1.0.2
++ Fix for HTTPS clients
+
+2016.08.08 v1.0.0
++ Initial Release RC1
