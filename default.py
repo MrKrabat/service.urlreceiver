@@ -16,13 +16,13 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-import sys
 import re
+import sys
 import socket
 
 import xbmc
-import xbmcaddon
 import xbmcgui
+import xbmcaddon
 
 try:
     import urlresolver
@@ -32,13 +32,13 @@ except:
 
 
 # Constants
-__addonid__      = "service.urlreceiver"
-__settings__  = xbmcaddon.Addon(id=__addonid__)
-__plugin__    = __settings__.getAddonInfo("name")
-__version__   = __settings__.getAddonInfo("version")
-__path__      = __settings__.getAddonInfo("path")
-__port__       = __settings__.getSetting("port")
-__regex__      = r"\.([a-zA-Z0-9]*)(?=\||\?|\#|\n|$)"
+__addonid__  = "service.urlreceiver"
+__settings__ = xbmcaddon.Addon(id=__addonid__)
+__plugin__   = __settings__.getAddonInfo("name")
+__version__  = __settings__.getAddonInfo("version")
+__path__     = __settings__.getAddonInfo("path")
+__port__     = __settings__.getSetting("port")
+__regex__    = r"\.([a-zA-Z0-9]*)(?=\||\?|\#|\n|$)"
 
 
 # function to send messages
