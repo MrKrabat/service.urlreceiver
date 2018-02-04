@@ -109,17 +109,17 @@ if __name__ == '__main__':
                     ext = re.search(__regex__, data)
                     if ext and ext.group(0) in __mediaext__:
                         link = data
-                    elif "crunchyroll.com" in data:
+                    elif u"crunchyroll.com" in data:
                         # special crunchyroll handler, requires crunchyroll-takeout plugin to be installed
                         xbmc.executeJSONRPC('{"jsonrpc":"2.0", "id":1, "method":"Player.Open", "params":{"item":{"file":"plugin://plugin.video.crunchyroll-takeout/?url=' + data + '"}}}')
                         sendtoclient(connection, browser, "1")
                         continue
-                    elif "akibapass.de" in data:
+                    elif u"akibapass.de" in data:
                         # special akibapass handler, requires akibapass plugin to be installed
                         xbmc.executeJSONRPC('{"jsonrpc":"2.0", "id":1, "method":"Player.Open", "params":{"item":{"file":"plugin://plugin.video.akibapass/?url=' + data + '"}}}')
                         sendtoclient(connection, browser, "1")
                         continue
-                    elif "wakanim.tv" in data:
+                    elif u"wakanim.tv" in data:
                         # special wakanim handler, requires wakanim plugin to be installed
                         xbmc.executeJSONRPC('{"jsonrpc":"2.0", "id":1, "method":"Player.Open", "params":{"item":{"file":"plugin://plugin.video.wakanim/?url=' + data + '"}}}')
                         sendtoclient(connection, browser, "1")
