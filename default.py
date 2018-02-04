@@ -24,7 +24,11 @@ import xbmc
 import xbmcaddon
 import xbmcgui
 
-import urlresolver
+try:
+    import urlresolver
+    urlresolverimport = True
+except:
+    urlresolverimport = False
 
 
 # Constants
@@ -122,7 +126,8 @@ if __name__ == '__main__':
                         continue
                     elif data:
                         try:
-                            link = urlresolver.resolve(data)
+                            if urlresolverimport:
+                                link = urlresolver.resolve(data)
                         except:
                             pass
 
