@@ -28,131 +28,132 @@ import urlresolver
 
 
 # Constants
-__addonid__	  = 'service.urlreceiver'
+__addonid__      = "service.urlreceiver"
 __settings__  = xbmcaddon.Addon(id=__addonid__)
-__plugin__    = __settings__.getAddonInfo('name')
-__version__   = __settings__.getAddonInfo('version')
-__path__	  = __settings__.getAddonInfo('path')
-__port__ 	  = __settings__.getSetting('port')
-__regex__	  = r"\.([a-zA-Z0-9]*)(?=\||\?|\#|\n|$)"
+__plugin__    = __settings__.getAddonInfo("name")
+__version__   = __settings__.getAddonInfo("version")
+__path__      = __settings__.getAddonInfo("path")
+__port__       = __settings__.getSetting("port")
+__regex__      = r"\.([a-zA-Z0-9]*)(?=\||\?|\#|\n|$)"
 
 
 # function to send messages
 def sendtoclient(socket, browser, message):
-	if not browser:
-		socket.send(message)
-	else:
-		if len(message) == 1:
-			message = message + '<script>window.close();</script>';
+    if not browser:
+        socket.send(message)
+    else:
+        if len(message) == 1:
+            message = message + "<script>window.close();</script>"
 
-		socket.sendall('HTTP/1.1 200 OK\nContent-Type: text/html\nAccess-Control-Allow-Origin: *\n\n' + message)
+        message = "HTTP/1.1 200 OK\nContent-Type: text/html\nAccess-Control-Allow-Origin: *\n\n" + message
+        socket.sendall(message.encode())
 
 
 # start program
 if __name__ == '__main__':
-	monitor = xbmc.Monitor()
-	# get playable extensions
-	__mediaext__  = tuple(str(xbmc.getSupportedMedia('video') + "|" + xbmc.getSupportedMedia('music')).split('|'))
-	# read URLSender.html
-	with open(__path__ + '/urlsender.html', 'r') as myfile:
-		__urlsender__ = myfile.read()
+    monitor = xbmc.Monitor()
+    # get playable extensions
+    __mediaext__  = tuple(str(xbmc.getSupportedMedia("video") + "|" + xbmc.getSupportedMedia("music")).split('|'))
+    # read URLSender.html
+    with open(__path__ + "/urlsender.html", "r") as myfile:
+        __urlsender__ = myfile.read()
 
-	try:
-		# create listening socket
-		sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-		sock.bind((xbmc.getIPAddress(), int(__port__)))
-		sock.listen(1)
-		sock.setblocking(0)
-		xbmc.log("[SERVICE] %s: Initializing version %s on port %s" % (__plugin__, __version__, __port__), xbmc.LOGDEBUG)
-		xbmcgui.Dialog().notification(__plugin__, __settings__.getLocalizedString(30100), xbmcgui.NOTIFICATION_INFO)
-	except socket.error:
-		# unable to listen on port
-		xbmc.log("[SERVICE] %s: Initializing version %s failed on port %s" % (__plugin__, __version__, __port__), xbmc.LOGFATAL)
-		xbmcgui.Dialog().notification(__plugin__, __settings__.getLocalizedString(30101) % __port__, xbmcgui.NOTIFICATION_ERROR)
-		sys.exit()
+    try:
+        # create listening socket
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.bind((xbmc.getIPAddress(), int(__port__)))
+        sock.listen(1)
+        sock.setblocking(0)
+        xbmc.log("[SERVICE] %s: Initializing version %s on port %s" % (__plugin__, __version__, __port__), xbmc.LOGDEBUG)
+        xbmcgui.Dialog().notification(__plugin__, __settings__.getLocalizedString(30100), xbmcgui.NOTIFICATION_INFO)
+    except socket.error:
+        # unable to listen on port
+        xbmc.log("[SERVICE] %s: Initializing version %s failed on port %s" % (__plugin__, __version__, __port__), xbmc.LOGFATAL)
+        xbmcgui.Dialog().notification(__plugin__, __settings__.getLocalizedString(30101) % __port__, xbmcgui.NOTIFICATION_ERROR)
+        sys.exit()
 
-	# main loop
-	while not monitor.abortRequested():
-		# shutdown requested?
-		if monitor.waitForAbort(0.20):
-			break
+    # main loop
+    while not monitor.abortRequested():
+        # shutdown requested?
+        if monitor.waitForAbort(0.20):
+            break
 
-		try:
-			# wait for incoming connection
-			connection, client_address = sock.accept()
-			try:
-				# receive message
-				connection.settimeout(10.0)
-				data = connection.recv(4096).rstrip()
-				if data:
-					# test if client is browser
-					browser = False
-					if xbmc.getIPAddress() in data:
-						data = data.split('\n', 1)[0]
-						data = data[13:-9].strip()
-						browser = True
-						if not data or data == "ico":
-							# send webinterface
-							sendtoclient(connection, browser, __urlsender__)
-							continue
+        try:
+            # wait for incoming connection
+            connection, client_address = sock.accept()
+            try:
+                # receive message
+                connection.settimeout(10.0)
+                data = connection.recv(4096).rstrip().decode("utf-8")
+                if data:
+                    # test if client is browser
+                    browser = False
+                    if xbmc.getIPAddress() in data:
+                        data = data.split("\n", 1)[0]
+                        data = data[13:-9].strip()
+                        browser = True
+                        if not data or data == "ico":
+                            # send webinterface
+                            sendtoclient(connection, browser, __urlsender__)
+                            continue
 
-					# Debug: log URL
-					xbmc.log("[SERVICE] %s: URL received: %s" % (__plugin__, data), xbmc.LOGDEBUG)
+                    # Debug: log URL
+                    xbmc.log("[SERVICE] %s: URL received: %s" % (__plugin__, data), xbmc.LOGDEBUG)
 
-					# test if link is video or need to be resolved
-					link = ''
-					ext = re.search(__regex__, data)
-					if ext and ext.group(0) in __mediaext__:
-						link = data
-					elif "crunchyroll.com" in data:
-						# special crunchyroll handler, requires crunchyroll-takeout plugin to be installed
-						xbmc.executeJSONRPC('{"jsonrpc":"2.0", "id":1, "method":"Player.Open", "params":{"item":{"file":"plugin://plugin.video.crunchyroll-takeout/?url=' + data + '"}}}')
-						sendtoclient(connection, browser, '1')
-						continue
-					elif "akibapass.de" in data:
-						# special akibapass handler, requires akibapass plugin to be installed
-						xbmc.executeJSONRPC('{"jsonrpc":"2.0", "id":1, "method":"Player.Open", "params":{"item":{"file":"plugin://plugin.video.akibapass/?url=' + data + '"}}}')
-						sendtoclient(connection, browser, '1')
-						continue
-					elif "wakanim.tv" in data:
-						# special wakanim handler, requires wakanim plugin to be installed
-						xbmc.executeJSONRPC('{"jsonrpc":"2.0", "id":1, "method":"Player.Open", "params":{"item":{"file":"plugin://plugin.video.wakanim/?url=' + data + '"}}}')
-						sendtoclient(connection, browser, '1')
-						continue
-					elif data:
-						try:
-							link = urlresolver.resolve(data)
-						except:
-							pass
+                    # test if link is video or need to be resolved
+                    link = ""
+                    ext = re.search(__regex__, data)
+                    if ext and ext.group(0) in __mediaext__:
+                        link = data
+                    elif "crunchyroll.com" in data:
+                        # special crunchyroll handler, requires crunchyroll-takeout plugin to be installed
+                        xbmc.executeJSONRPC('{"jsonrpc":"2.0", "id":1, "method":"Player.Open", "params":{"item":{"file":"plugin://plugin.video.crunchyroll-takeout/?url=' + data + '"}}}')
+                        sendtoclient(connection, browser, "1")
+                        continue
+                    elif "akibapass.de" in data:
+                        # special akibapass handler, requires akibapass plugin to be installed
+                        xbmc.executeJSONRPC('{"jsonrpc":"2.0", "id":1, "method":"Player.Open", "params":{"item":{"file":"plugin://plugin.video.akibapass/?url=' + data + '"}}}')
+                        sendtoclient(connection, browser, "1")
+                        continue
+                    elif "wakanim.tv" in data:
+                        # special wakanim handler, requires wakanim plugin to be installed
+                        xbmc.executeJSONRPC('{"jsonrpc":"2.0", "id":1, "method":"Player.Open", "params":{"item":{"file":"plugin://plugin.video.wakanim/?url=' + data + '"}}}')
+                        sendtoclient(connection, browser, "1")
+                        continue
+                    elif data:
+                        try:
+                            link = urlresolver.resolve(data)
+                        except:
+                            pass
 
-					if link:
-						if xbmc.Player().isPlaying():
-							# add to playlist
-							sendtoclient(connection, browser, '2')
-							playlist = xbmc.PlayList(xbmc.PLAYLIST_VIDEO)
-							playlist.add(link)
-						else:
-							# play
-							sendtoclient(connection, browser, '1')
-							playlist = xbmc.PlayList(xbmc.PLAYLIST_VIDEO)
-							playlist.clear()
-							playlist.add(link)
-							xbmc.Player().play(playlist)
-					else:
-						# unable to play
-						sendtoclient(connection, browser, '0')
-						xbmc.log("[SERVICE] %s: The received URL could not be played" % __plugin__, xbmc.LOGDEBUG)
-						xbmcgui.Dialog().notification(__plugin__, __settings__.getLocalizedString(30102), xbmcgui.NOTIFICATION_WARNING)
+                    if link:
+                        if xbmc.Player().isPlaying():
+                            # add to playlist
+                            sendtoclient(connection, browser, "2")
+                            playlist = xbmc.PlayList(xbmc.PLAYLIST_VIDEO)
+                            playlist.add(link)
+                        else:
+                            # play
+                            sendtoclient(connection, browser, "1")
+                            playlist = xbmc.PlayList(xbmc.PLAYLIST_VIDEO)
+                            playlist.clear()
+                            playlist.add(link)
+                            xbmc.Player().play(playlist)
+                    else:
+                        # unable to play
+                        sendtoclient(connection, browser, "0")
+                        xbmc.log("[SERVICE] %s: The received URL could not be played" % __plugin__, xbmc.LOGDEBUG)
+                        xbmcgui.Dialog().notification(__plugin__, __settings__.getLocalizedString(30102), xbmcgui.NOTIFICATION_WARNING)
 
-			finally:
-				# close connection
-				connection.close()
+            finally:
+                # close connection
+                connection.close()
 
-		except socket.error:
-			# continue if no connection
-			continue
+        except socket.error:
+            # continue if no connection
+            continue
 
 
-	# shut down service
-	xbmc.log("[SERVICE] %s: The service will be shut down" % __plugin__, xbmc.LOGDEBUG)
-	sock.close()
+    # shut down service
+    xbmc.log("[SERVICE] %s: The service will be shut down" % __plugin__, xbmc.LOGDEBUG)
+    sock.close()
