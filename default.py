@@ -124,6 +124,11 @@ if __name__ == '__main__':
                         xbmc.executeJSONRPC('{"jsonrpc":"2.0", "id":1, "method":"Player.Open", "params":{"item":{"file":"plugin://plugin.video.wakanim/?url=' + data + '"}}}')
                         sendtoclient(connection, browser, "1")
                         continue
+                    elif u"watchbox.de" in data:
+                        # special watchbox handler, requires watchbox plugin to be installed
+                        xbmc.executeJSONRPC('{"jsonrpc":"2.0", "id":1, "method":"Player.Open", "params":{"item":{"file":"plugin://plugin.video.watchbox/?url=' + data + '"}}}')
+                        sendtoclient(connection, browser, "1")
+                        continue
                     elif data:
                         try:
                             if urlresolverimport:
