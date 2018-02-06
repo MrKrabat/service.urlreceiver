@@ -19,6 +19,7 @@
 import re
 import sys
 import socket
+from urllib2 import HTTPError
 
 import xbmc
 import xbmcgui
@@ -27,7 +28,7 @@ import xbmcaddon
 try:
     import urlresolver
     urlresolverimport = True
-except:
+except ImportError:
     urlresolverimport = False
 
 
@@ -133,7 +134,7 @@ if __name__ == '__main__':
                         try:
                             if urlresolverimport:
                                 link = urlresolver.resolve(data)
-                        except:
+                        except HTTPError:
                             pass
 
                     if link:
