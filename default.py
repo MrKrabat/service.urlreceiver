@@ -19,7 +19,10 @@
 import re
 import sys
 import socket
-from urllib2 import HTTPError
+try:
+    from urllib2 import HTTPError
+except ImportError:
+    from urllib.error import HTTPError
 
 import xbmc
 import xbmcgui
